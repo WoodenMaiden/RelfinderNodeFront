@@ -14,7 +14,6 @@ export default function SigmaCanvas(props) {
 
         const sigma = new Sigma(graph, root)
         sigma.setSetting("stagePadding", 0)
-        console.log(sigma.getSettings())
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
@@ -44,13 +43,49 @@ export default function SigmaCanvas(props) {
                 graph.setNodeAttribute(node, "size", 5)
                 graph.setNodeAttribute(node, "color", "#FA4F40")
             })
+
+            graph.forEachEdge((edge) => {
+                graph.setEdgeAttribute(edge, "type", "arrow")
+            })
             sigma.refresh()
         }))
     })
 
     return (
         <div id="sigmaroot">
+            <ul>
+                <li>
+                    <div className="roundbutton clickable">
+                       <span className="material-icons-round">
+                           search
+                       </span>
+                   </div>
+                </li>
 
+                <li>
+                    <div className="roundbutton clickable">
+                       <span className="material-icons-round">
+                          photo_camera
+                       </span>
+                    </div>
+                </li>
+
+                <li>
+                    <div className="roundbutton clickable">
+                       <span className="material-icons-round">
+                           add
+                       </span>
+                    </div>
+                </li>
+
+                <li>
+                    <div className="roundbutton clickable">
+                       <span className="material-icons-round">
+                           remove
+                       </span>
+                    </div>
+                </li>
+            </ul>
         </div>
     )
 }
