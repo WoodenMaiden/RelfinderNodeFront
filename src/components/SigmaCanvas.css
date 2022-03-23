@@ -23,3 +23,14 @@ ul {
     padding: 10px;
     text-align: center;
 }
+
+.deployedbutton {
+    background-color: #ffffff;
+    border-radius: 50px;
+    padding: 10px;
+    text-align: center;
+}
+
+#search > form > .material-icons-round {
+    vertical-align: middle;
+}

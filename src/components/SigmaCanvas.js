@@ -12,7 +12,10 @@ export default function SigmaCanvas(props) {
     useEffect(() => {
         const root = document.getElementById("sigmaroot")
 
+        graph.clear()
         const sigma = new Sigma(graph, root)
+        sigma.refresh()
+        sigma.clear()
         sigma.setSetting("stagePadding", 0)
 
         const myHeaders = new Headers();
@@ -55,10 +58,16 @@ export default function SigmaCanvas(props) {
         <div id="sigmaroot">
             <ul>
                 <li>
-                    <div className="roundbutton clickable">
-                       <span className="material-icons-round">
-                           search
-                       </span>
+                    <div id="search" className="deployedbutton">
+                       <form>
+                           <input type="search" name="toSearch" placeholder="Node to search"/>
+                           <span className="material-icons-round clickable">
+                              search
+                           </span>
+                           <span className="material-icons-round clickable">
+                              restart_alt
+                           </span>
+                       </form>
                    </div>
                 </li>
 
