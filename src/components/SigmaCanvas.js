@@ -62,12 +62,24 @@ export default function SigmaCanvas(props) {
                 if (graph.getNodeAttribute(node, "size") !== 5) graph.setNodeAttribute(node, "size", 5)
             })
 
-            sigma.refresh()
-            graph.setNodeAttribute(input, "color", "#46b72d")
+            graph.setNodeAttribute(input, "color", "#eaf318")
             graph.setNodeAttribute(input, "size", 10)
-            sigma.refresh()
 
-            // TODO highlight neighbors and edges
+            const focused = graph.neighbors(input)
+            graph.forEachNeighbor(input, node => {
+                console.log(node)
+                graph.setNodeAttribute(node, "color", "#2f7e1e")
+                graph.setNodeAttribute(node, "size", 7.5)
+            })
+
+            //TODO fix
+            graph.forEachNode(node => {
+                if (!focused.includes(node)) {
+                    graph.setNodeAttribute(node, "color", "rgba(47,126,30,0)")
+                }
+            })
+
+            sigma.refresh()
         }
         else {
             // TODO make the research bar blink
