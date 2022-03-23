@@ -7,20 +7,17 @@ import './SigmaCanvas.css'
 export default function SigmaCanvas(props) {
 
     const [graph, setGraph] = useState(new MultiDirectedGraph())
-//    const [sigma, setSigma] = useState(null)
+    let sigma = null
 
     useEffect(() => {
-        const root = document.getElementById("sigmaroot")
-
+        sigma = new Sigma(graph, document.getElementById("sigmaroot"))
         graph.clear()
-        const sigma = new Sigma(graph, root)
         sigma.refresh()
         sigma.clear()
         sigma.setSetting("stagePadding", 0)
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
-
         //SAMPLE DATA
         const raw = JSON.stringify({
             "nodes": [
@@ -52,7 +49,30 @@ export default function SigmaCanvas(props) {
             })
             sigma.refresh()
         }))
-    })
+    }, [graph, props.url])
+
+    function search(event) {
+        if (!event.key || event.key === "Enter") event.preventDefault()
+        const input = document.getElementById("searchinput").value.trim()
+
+        if (graph.hasNode(input)) {
+
+            graph.forEachNode(node => {
+                if (graph.getNodeAttribute(node, "color") !== "#FA4F40") graph.setNodeAttribute(node, "color", "#FA4F40")
+                if (graph.getNodeAttribute(node, "size") !== 5) graph.setNodeAttribute(node, "size", 5)
+            })
+
+            sigma.refresh()
+            graph.setNodeAttribute(input, "color", "#46b72d")
+            graph.setNodeAttribute(input, "size", 10)
+            sigma.refresh()
+
+            // TODO highlight neighbors and edges
+        }
+        else {
+            // TODO make the research bar blink
+        }
+    }
 
     return (
         <div id="sigmaroot">
@@ -60,9 +80,9 @@ export default function SigmaCanvas(props) {
                 <li>
                     <div id="search" className="deployedbutton">
                        <form>
-                           <input type="search" name="toSearch" placeholder="Node to search"/>
-                           <span className="material-icons-round clickable">
-                              search
+                           <input type="search" id="searchinput" name="toSearch" placeholder="Node to search" onKeyPress={search}/>
+                           <span className="material-icons-round clickable" onClick={search}>
+                               search
                            </span>
                            <span className="material-icons-round clickable">
                               restart_alt
