@@ -173,6 +173,14 @@ export default function SigmaCanvas(props) {
         }, "image/png")
     }
 
+    function zoom(event) {
+        sigma.getCamera().animatedZoom({duration: 600})
+    }
+
+    function dezoom(event) {
+        sigma.getCamera().animatedUnzoom({duration: 600})
+    }
+
     return (
         <div id="sigmacanvas">
 	        <div id="sigmaroot">
@@ -200,7 +208,7 @@ export default function SigmaCanvas(props) {
 	                </li>
 
 	                <li>
-	                    <div className="roundbutton clickable">
+	                    <div className="roundbutton clickable" onClick={zoom}>
 	                       <span className="material-icons-round">
 	                           add
 	                       </span>
@@ -208,7 +216,7 @@ export default function SigmaCanvas(props) {
 	                </li>
 
 	                <li>
-	                    <div className="roundbutton clickable">
+	                    <div className="roundbutton clickable" onClick={dezoom}>
 	                       <span className="material-icons-round">
 	                           remove
 	                       </span>
