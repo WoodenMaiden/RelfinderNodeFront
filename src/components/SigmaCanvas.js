@@ -6,18 +6,20 @@ import './SigmaCanvas.css'
 
 export default function SigmaCanvas(props) {
 
-    const [graph, setGraph] = useState(new MultiDirectedGraph())
+    const [ogGraph, setOgGraph] = useState(new MultiDirectedGraph()) // The original graph
     let sigma = null
 
     useEffect(() => {
-        sigma = new Sigma(graph, document.getElementById("sigmaroot"))
-        graph.clear()
+        let shownGraph = new MultiDirectedGraph()
+        sigma = new Sigma(shownGraph, document.getElementById("sigmaroot"))
+
         sigma.refresh()
         sigma.clear()
         sigma.setSetting("stagePadding", 0)
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
+
         //SAMPLE DATA
         const raw = JSON.stringify({
             "nodes": [
@@ -35,54 +37,89 @@ export default function SigmaCanvas(props) {
 
         const URL = (props.url.slice(-1) === "/") ? props.url.slice(0, -1) : props.url
         fetch(`${URL}/relfinder/2`, requestOptions).then((res) => res.json().then((data) => {
-            graph.import(data);
-            graph.forEachNode((node) => {
-                graph.setNodeAttribute(node, "x", Math.floor(Math.random() * 100))
-                graph.setNodeAttribute(node, "y", Math.floor(Math.random() * 100))
-                graph.setNodeAttribute(node, "label", node)
-                graph.setNodeAttribute(node, "size", 5)
-                graph.setNodeAttribute(node, "color", "#FA4F40")
+            ogGraph.import(data);
+            sigma.graph.import(data)
+            ogGraph.forEachNode((node) => {
+                const y = Math.floor(Math.random() * 100)
+                const x = Math.floor(Math.random() * 100)
+
+                ogGraph.setNodeAttribute(node, "x", x)
+                sigma.graph.setNodeAttribute(node, "x", x)
+                ogGraph.setNodeAttribute(node, "y", y)
+                sigma.graph.setNodeAttribute(node, "y", y)
+
+                ogGraph.setNodeAttribute(node, "label", node)
+                sigma.graph.setNodeAttribute(node, "label", node)
+
+                ogGraph.setNodeAttribute(node, "color", "#FA4F40")
+                sigma.graph.setNodeAttribute(node, "color", "#FA4F40")
+
+                ogGraph.setNodeAttribute(node, "size", 5)
+                sigma.graph.setNodeAttribute(node, "size", 5)
             })
 
-            graph.forEachEdge((edge) => {
-                graph.setEdgeAttribute(edge, "type", "arrow")
+            ogGraph.forEachEdge((edge) => {
+                ogGraph.setEdgeAttribute(edge, "type", "arrow")
+                .setEdgeAttribute(edge, "type", "arrow")
             })
+
             sigma.refresh()
         }))
-    }, [graph, props.url])
+    }, [ogGraph, props.url])
+
+    function resetGraph() {
+        sigma.graph = ogGraph.copy()
+        const inputField = document.getElementById("searchinput")
+        inputField.value = ""
+        sigma.refresh()
+    }
 
     function search(event) {
-        if (!event.key || event.key === "Enter") event.preventDefault()
-        const input = document.getElementById("searchinput").value.trim()
+        if ((event._reactName === "onKeyPress" && event.key === "Enter") ||
+            event._reactName === "onClick") event.preventDefault()
+        else return; // to not run this function
 
-        if (graph.hasNode(input)) {
+        const elt = document.getElementById("searchinput")
+        const back = document.getElementsByClassName("deployedbutton")[0]
+        const input = elt.value.trim()
 
-            graph.forEachNode(node => {
-                if (graph.getNodeAttribute(node, "color") !== "#FA4F40") graph.setNodeAttribute(node, "color", "#FA4F40")
-                if (graph.getNodeAttribute(node, "size") !== 5) graph.setNodeAttribute(node, "size", 5)
+        if (ogGraph.hasNode(input)) {
+            sigma.graph = ogGraph.copy()
+
+            sigma.graph.setNodeAttribute(input, "color", "#2f7e1e")
+            sigma.graph.setNodeAttribute(input, "size", 10)
+
+            const focused = sigma.graph.outNeighbors(input)
+            focused.push(input)
+
+            const focusedEdges = sigma.graph.outEdges(input)
+
+            sigma.graph.forEachNode(node => {
+                if(!focused.includes(node)) sigma.graph.dropNode(node)
             })
 
-            graph.setNodeAttribute(input, "color", "#eaf318")
-            graph.setNodeAttribute(input, "size", 10)
-
-            const focused = graph.neighbors(input)
-            graph.forEachNeighbor(input, node => {
-                console.log(node)
-                graph.setNodeAttribute(node, "color", "#2f7e1e")
-                graph.setNodeAttribute(node, "size", 7.5)
-            })
-
-            //TODO fix
-            graph.forEachNode(node => {
-                if (!focused.includes(node)) {
-                    graph.setNodeAttribute(node, "color", "rgba(47,126,30,0)")
-                }
+            sigma.graph.forEachEdge(edge => {
+                if(!focusedEdges.includes(edge)) sigma.graph.dropEdge(edge)
             })
 
             sigma.refresh()
         }
         else {
-            // TODO make the research bar blink
+            const defColor = elt.style.backgroundColor
+            elt.style.backgroundColor = "#FA4F40"
+            back.style.backgroundColor = "#FA4F40"
+            setTimeout(() => {
+                elt.style.backgroundColor = defColor
+                back.style.backgroundColor = defColor
+                setTimeout(() => {
+                    back.style.backgroundColor = "#FA4F40"
+                    elt.style.backgroundColor = "#FA4F40"
+                    setTimeout(() => {
+                        elt.style.backgroundColor = defColor
+                        back.style.backgroundColor = defColor
+                    }, 150)
+                }, 150)
+            }, 150)
         }
     }
 
@@ -96,7 +133,7 @@ export default function SigmaCanvas(props) {
                            <span className="material-icons-round clickable" onClick={search}>
                                search
                            </span>
-                           <span className="material-icons-round clickable">
+                           <span className="material-icons-round clickable" onClick={resetGraph}>
                               restart_alt
                            </span>
                        </form>
